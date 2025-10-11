@@ -7,25 +7,27 @@ async function fetchKey(gameId) {
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
   const page = await browser.newPage();
-  await page.goto(url, { waitUntil: 'networkidle2' });
 
-  const key = await page.evaluate(() => {
-    const scripts = Array.from(document.querySelectorAll('script'));
-    for (let script of scripts) {
-      const match = script.textContent.match(/key=([a-f0-9]{32})/);
-      if (match) return match[1];
+  let extractedKey = null;
+
+  page.on('request', request => {
+    const reqUrl = request.url();
+    const match = reqUrl.match(/key=([a-f0-9]{32})/);
+    if (match) {
+      extractedKey = match[1];
     }
-    return null;
   });
 
+  await page.goto(url, { waitUntil: 'networkidle2' });
+
   await browser.close();
-  if (!key) throw new Error('Key not found');
-  return key;
+
+  if (!extractedKey) throw new Error('Key not found via network interception');
+  return extractedKey;
 }
 
 module.exports = fetchKey;
 
-// Run standalone
 if (require.main === module) {
   const gameId = process.argv[2];
   fetchKey(gameId).then(console.log).catch(console.error);
