@@ -12,17 +12,29 @@ async function fetchKey(gameId) {
 
   page.on('request', request => {
     const reqUrl = request.url();
-    const match = reqUrl.match(/key=([a-f0-9]{32})/);
-    if (match) {
-      extractedKey = match[1];
+    if (reqUrl.includes('lscluster.hockeytech.com/feed/index.php')) {
+      const match = reqUrl.match(/key=([a-f0-9]{32})/);
+      if (match) {
+        extractedKey = match[1];
+      }
     }
   });
 
   await page.goto(url, { waitUntil: 'networkidle2' });
 
+  // Wait up to 10 seconds for key to appear
+  const maxWait = 10000;
+  const pollInterval = 250;
+  let waited = 0;
+
+  while (!extractedKey && waited < maxWait) {
+    await new Promise(res => setTimeout(res, pollInterval));
+    waited += pollInterval;
+  }
+
   await browser.close();
 
-  if (!extractedKey) throw new Error('Key not found via network interception');
+  if (!extractedKey) throw new Error('Key not found after waiting');
   return extractedKey;
 }
 
