@@ -1,0 +1,17 @@
+name: Fetch AHL Live Feed
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'  # Every 15 minutes
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: node fetchKey.js 1027778
