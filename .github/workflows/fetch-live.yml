@@ -3,7 +3,7 @@ name: Fetch AHL Live Feed
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/15 * * * *'  # Every 15 minutes
+    - cron: '0 0 30 2 *'  # Every 15 minutes
 
 jobs:
   fetch:
